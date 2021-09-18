@@ -1,9 +1,67 @@
-FROM texlive/texlive@sha256:023943e37a1812a8541284e12e0ace66a7600f36f468fd894aff4d473d91e0c4
+FROM registry.gitlab.com/islandoftex/images/texlive:base
 
-RUN tlmgr install luatex85
-RUN tlmgr install tikz-feynman
-RUN tlmgr install standalone
+ARG DOCFILES=no
+ARG SRCFILES=no
+
+
+RUN apt-get update && \
+  # Mark all texlive packages as installed. This enables installing latex-related packges in child images.
+  # Inspired by https://tex.stackexchange.com/a/95373/9075.
+  apt install -qy equivs --no-install-recommends freeglut3 && \
+  mkdir -p /tmp/tl-equivs && \
+  # we need to change into tl-equis to get it working
+  cd /tmp/tl-equivs && \
+  wget -q -O texlive-local http://www.tug.org/texlive/files/debian-equivs-2021-ex.txt && \
+  sed -i "s/2021/9999/" texlive-local && \
+  equivs-build texlive-local && \
+  dpkg -i texlive-local_9999.99999999-1_all.deb && \
+  apt install -qyf && \
+  # reverse the cd command from above and cleanup
+  cd .. && \
+  rm -rf /tmp/tl-equivs && \
+  # save some space
+  apt remove -y --purge equivs && \
+  apt-get autoremove -qy --purge && \
+  rm -rf /var/lib/apt/lists/* && \
+  apt-get clean && \
+  rm -rf /var/cache/apt/
+
+
+RUN echo "Building with documentation: $DOCFILES" && \
+  echo "Building with sources: $SRCFILES" && \
+  # verify vanilla TeX Live installer
+  wget "$TLMIRRORURL/install-tl-unx.tar.gz" && \
+  wget "$TLMIRRORURL/install-tl-unx.tar.gz.sha512" && \
+  wget "$TLMIRRORURL/install-tl-unx.tar.gz.sha512.asc" && \
+  wget https://tug.org/texlive/files/texlive.asc && \
+  gpg --import texlive.asc && \
+  gpg --verify install-tl-unx.tar.gz.sha512.asc install-tl-unx.tar.gz.sha512 && \
+  sha512sum -c install-tl-unx.tar.gz.sha512 && \
+  rm install-tl-unx.tar.gz.sha512* && \
+  rm texlive.asc && \
+  rm -rf /root/.gnupg && \
+  tar xzf install-tl-unx.tar.gz && \
+  rm install-tl-unx.tar.gz && \
+  # actually install TeX Live
+  cd install-tl* && \
+  # choose complete installation
+  echo "selected_scheme scheme-basic" > install.profile && \
+  # … but disable documentation and source files when asked to stay slim
+  if [ "$DOCFILES" = "no" ]; then echo "tlpdbopt_install_docfiles 0" >> install.profile && \
+    echo "BUILD: Disabling documentation files"; fi && \
+  if [ "$SRCFILES" = "no" ]; then echo "tlpdbopt_install_srcfiles 0" >> install.profile && \
+    echo "BUILD: Disabling source files"; fi && \
+  echo "tlpdbopt_autobackup 0" >> install.profile && \
+  # furthermore we want our symlinks in the system binary folder to avoid
+  # fiddling around with the PATH
+  echo "tlpdbopt_sys_bin /usr/bin" >> install.profile && \
+  ./install-tl -profile install.profile && \
+  cd .. && rm -rf install-tl* && \
+  # add all relevant binaries to the PATH
+  $(find /usr/local/texlive -name tlmgr) path add
+
 RUN apt-get update -y && apt-get install -y pdf2svg librsvg2-bin
+RUN tlmgr install luatex85 xkeyval tikz-feynman standalone
 
 WORKDIR /app
 COPY run run
