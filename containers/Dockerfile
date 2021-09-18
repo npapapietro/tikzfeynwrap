@@ -11,7 +11,7 @@ RUN chmod +x run
 
 # force download the fonts
 WORKDIR /testapp
-COPY warmpup.tex warmpup.tex
-RUN lualatex warmpup.tex
+COPY warmup.tex warmup.tex
+RUN lualatex warmup.tex
 
 WORKDIR /app
