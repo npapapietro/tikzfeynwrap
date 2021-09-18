@@ -1,0 +1,18 @@
+#!/bin/bash
+
+cat <<EOT >> output.tex
+\documentclass[tikz]{standalone}
+\usepackage{tikz-feynman}
+\begin{document}
+\begin{tikzpicture}
+EOT
+
+# body of diagram
+echo $1 >> output.tex
+
+cat <<EOT >> output.tex
+\end{tikzpicture}
+\end{document}
+EOT
+
+lualatex output.tex && pdf2svg output.pdf output.svg && mv output.svg ./bind/output.svg
