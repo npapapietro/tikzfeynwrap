@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# $1 - The raw latex string
+# $2 - The uuid folder for this output
+
 cat <<EOT >> output.tex
 \documentclass[tikz]{standalone}
 \usepackage{tikz-feynman}
@@ -15,4 +18,4 @@ cat <<EOT >> output.tex
 \end{document}
 EOT
 
-lualatex output.tex && pdf2svg output.pdf output.svg && mv output.svg ./bind/output.svg
+lualatex output.tex && pdf2svg output.pdf output.svg && mv output.svg ./bind/$2/output.svg

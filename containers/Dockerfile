@@ -73,3 +73,6 @@ COPY warmup.tex warmup.tex
 RUN lualatex warmup.tex
 
 WORKDIR /app
+
+
+CMD tail -f /dev/null
