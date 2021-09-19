@@ -12,7 +12,7 @@ install_requires = [
 
 setup(
     name='tikzfeynwrap',
-    version='0.1.0',
+    version='0.0.7',
     description='Simple Wrapper for latex docker container',
     install_requires=install_requires,
     packages=find_packages(),
