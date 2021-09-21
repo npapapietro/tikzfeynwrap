@@ -1,4 +1,4 @@
-__version__ = "0.0.7"
+__version__ = "0.0.9"
 
 import docker
 from docker.models.containers import Container
@@ -13,14 +13,18 @@ class TikzFeynWrap:
 
     @property
     def name(self):
-        return self.image + ":" + self.version
+        if self.version:
+            return self.image + ":" + self.version
+        else:
+            return self.image
 
     def __init__(
         self, 
         image="ghcr.io/npapapietro/tikzfeynwrap",
+        version=__version__,
         clear_cache=False):
         self.client = docker.from_env()
-        self.version = __version__,
+        self.version = version
         self.image = image
         self.container=None
 
@@ -65,26 +69,32 @@ class TikzFeynWrap:
         self.container.stop()
         self.container.remove()
 
-    def __call__(self, tex: str, return_path=False, display=True):        
+    def __call__(self, tex: str, return_path=False, return_output=False, display=True):        
         """Runs exec against running container creating feynman diagram. Returns
         filepath if `return_path` is True.
 
         Args:
             tex (str): Latex of tikz-feynman compat string
             return_path (bool, optional): Returns the file path of the svg. Defaults to False.
+            return_output (bool, optional): Returns the docker exec output. Defaults to False.
             display (bool, optional): Used in Jupyter Notebooks, will call `display` on svgpath. Defaults to True.
         """
         id_ = create_record()
 
-        self.container.exec_run(
+        res = self.container.exec_run(
             ["/app/run", tex, id_],
         )
 
         out_path = os.path.join(DEFAULT_LOCATION, id_, 'output.svg')
 
-        if return_path:
-            return out_path
+        output = []
+        if return_path is True:
+            output.append(out_path)
+        if return_output is True:
+            output.append(res)
 
         if display:
             from IPython.display import SVG, display
             display(SVG(out_path))
+
+        return tuple(output) if len(output) > 0 else None

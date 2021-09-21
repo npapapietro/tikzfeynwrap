@@ -19,3 +19,4 @@ cat <<EOT >> output.tex
 EOT
 
 lualatex output.tex && pdf2svg output.pdf output.svg && mv output.svg ./bind/$2/output.svg
+rm /app/output.*

@@ -6,13 +6,13 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 install_requires = [
-    "docker_py>=1.10.6",
+    "docker>=5.0.2",
     "ipython>=7.27.0"
 ]
 
 setup(
     name='tikzfeynwrap',
-    version='0.0.8',
+    version='0.0.9',
     description='Simple Wrapper for latex docker container',
     install_requires=install_requires,
     packages=find_packages(),
@@ -22,8 +22,6 @@ setup(
     author_email="npapapietro95@gmail.com",
     url="https://github.com/npapapietro/tikzfeynwrap",
     classifiers=[
-        "Topic :: Scientific/Engineering :: Mathematics",
-        "Topic :: Scientific/Engineering :: Physics",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
